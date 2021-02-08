@@ -50,17 +50,16 @@ main = do
       withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
       return $ (header, reverse labels)
     else do
-      inputs <- mapM readFile (files a)
-      let hts0 = map total inputs
-          (smima, vmima) = foldl1' (\((!smi, !sma), (!vmi, !vma)) ((!smi', !sma'), (!vmi', !vma')) -> ((smi`min`smi', sma`max`sma'), (vmi`min`vmi', vma`max`vma'))) . map (\(h, _) -> (hSampleRange h, hValueRange h)) $ hts0
+      hts0 <- map total <$> mapM readFile (files a)
+      let (smima, vmima) = foldl1' (\((!smi, !sma), (!vmi, !vma)) ((!smi', !sma'), (!vmi', !vma')) -> ((smi`min`smi', sma`max`sma'), (vmi`min`vmi', vma`max`vma'))) . map (\(h, _) -> (hSampleRange h, hValueRange h)) $ hts0
           hts1 | uniformTime = map (\(h, t) -> (h{ hSampleRange = smima }, t)) hts0
                | otherwise = hts0
           hts | uniformMemory = map (\(h, t) -> (h{ hValueRange = vmima }, t)) hts1
               | otherwise = hts1
-      forM (zip3 (files a) inputs hts) $ \(file, input, (header, totals)) -> do
+      forM (zip (files a) hts) $ \(file, (header, totals)) -> do
         let keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
-            (times, vals) = bands header keeps input
-            ((sticks, vticks), (labels, coords)) = pretty header vals keeps
+        (times, vals) <- bands header keeps <$> readFile file
+        let ((sticks, vticks), (labels, coords)) = pretty header vals keeps
             outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
         withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
         return $ (header, reverse labels)
