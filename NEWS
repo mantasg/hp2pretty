@@ -1,3 +1,9 @@
+v0.10	2021-02-19	lazy text
+
+Read input twice with Text.Lazy (thanks to David Hewson).
+Allows processing huge input, speeds up less huge input too.
+
+
 v0.9	2018-08-01	detach
 
 New flags and features:
