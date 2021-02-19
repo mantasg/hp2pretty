@@ -1,11 +1,14 @@
 Name:                hp2pretty
-Version:             0.9
+Version:             0.10
 Synopsis:            generate pretty graphs from heap profiles
 Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, with
                      the aims of being maintainable, with more flexible output, and
                      more beautiful output.  Currently hp2pretty outputs Scalable
                      Vector Graphics (SVG) only, though PostScript (PS) is planned.
                      Not all of hp2ps' options are implemented yet in hp2pretty.
+                     .
+                     In hp2pretty-0.10 parsing of very large files is made possible
+                     by reading the file(s) twice as Text.Lazy.
                      .
                      In hp2pretty-0.9 a mode for detached key is added:
                      .
@@ -62,7 +65,7 @@ License:             BSD3
 License-file:        LICENSE
 Author:              Claude Heiland-Allen
 Maintainer:          claude@mathr.co.uk
-Copyright:           (C) 2010,2011,2015,2017,2018  Claude Heiland-Allen
+Copyright:           (C) 2010,2011,2015,2017,2018,2021  Claude Heiland-Allen
 Category:            Development
 Build-type:          Simple
 Extra-source-files:
@@ -76,7 +79,7 @@ Extra-source-files:
   examples/Makefile
   examples/report.tex
 
-Cabal-version:       >=1.6
+Cabal-version:       >=1.10
 
 Executable hp2pretty
   Build-depends:       base >= 4 && < 5,
@@ -91,6 +94,7 @@ Executable hp2pretty
                        text
   GHC-options:         -Wall -rtsopts
   HS-source-dirs:      src
+  Default-Language:    Haskell2010
   Main-is:             Main.hs
   Other-modules:       Args
                        Types
@@ -110,4 +114,4 @@ Source-repository head
 Source-repository this
   type:                git
   location:            https://code.mathr.co.uk/hp2pretty.git
-  tag:                 v0.9
+  tag:                 v0.10
