@@ -12,3 +12,4 @@ src/Main
 tests/escapes
 tests/namelen
 tests/unicode
+.stack-work*
