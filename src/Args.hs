@@ -18,6 +18,7 @@ data Args = Args
   , nBands       :: Int
   , patterned    :: Bool
   , filters      :: [String]
+  , noTraces     :: Bool
   , files        :: [String]
   }
 
@@ -65,6 +66,9 @@ argParser = Args
           ( long "filter"
          <> help "Filters for bands"
          <> metavar "FILTER" ))
+      <*> switch
+          ( long "no-traces"
+         <> help "Do not render trace-objects" )
       <*> some (argument str
           ( help "Heap profiles (FILE.hp will be converted to FILE.svg)."
          <> metavar "FILES..." ))

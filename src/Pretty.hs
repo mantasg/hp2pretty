@@ -11,21 +11,25 @@ import Data.Ord (comparing)
 
 import Types
 
-pretty :: Header -> UArray (Int, Int) Double -> Map Text Int -> (([Double], [Double]), ([Text], UArray (Int, Int) Double))
-pretty header vals bs =
+pretty :: Bool -> Header -> UArray (Int, Int) Double -> Map Text Int -> (([Double], [Double]), ([Text], UArray (Int, Int) Double))
+pretty noTraces header vals bs =
   let sticks = uncurry (ticks 20) (hSampleRange header)
       vticks = uncurry (ticks 20) (hValueRange header)
       labels = pack "(trace elements)" : (map fst . sortBy (comparing snd) . toList $ bs)
-      coords = accumulate vals
+      coords = accumulate noTraces vals
   in  ((sticks, vticks), (labels, coords))
 
-accumulate :: UArray (Int, Int) Double -> UArray (Int, Int) Double
-accumulate a0 = runSTUArray $ do
+accumulate :: Bool -> UArray (Int, Int) Double -> UArray (Int, Int) Double
+accumulate noTraces a0 = runSTUArray $ do
   let ((b0,s0),(b1,s1)) = bounds a0
   a <- thaw a0
   forM_ [s0 .. s1] $ \s ->
-    forM_ [b0 + 1 .. b1] $ \b ->
-      writeArray a (b, s) =<< liftM2 (+) (readArray a (b - 1, s)) (readArray a (b, s))
+    forM_ [b0 + 1 .. b1] $ \b -> do
+      x <- readArray a (b - 1, s)
+      y <- readArray a (b, s)
+      if b == 0 && noTraces
+        then writeArray a (b, s) 0
+        else writeArray a (b, s) (x + y)
   return a
 
 ticks :: Int -> Double -> Double -> [Double]

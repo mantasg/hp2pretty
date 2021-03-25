@@ -45,7 +45,7 @@ main = do
       (header, totals) <- total <$> readFile file
       let keeps = prune (filters a) cmp (tracePercent a) (bound $ nBands a) totals
       (times, vals) <- bands header keeps <$> readFile file
-      let ((sticks, vticks), (labels, coords)) = pretty header vals keeps
+      let ((sticks, vticks), (labels, coords)) = pretty (noTraces a) header vals keeps
           outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
       withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
       return $ (header, reverse labels)
@@ -59,7 +59,7 @@ main = do
       forM (zip (files a) hts) $ \(file, (header, totals)) -> do
         let keeps = prune (filters a) cmp (tracePercent a) (bound $ nBands a) totals
         (times, vals) <- bands header keeps <$> readFile file
-        let ((sticks, vticks), (labels, coords)) = pretty header vals keeps
+        let ((sticks, vticks), (labels, coords)) = pretty (noTraces a) header vals keeps
             outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
         withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
         return $ (header, reverse labels)
