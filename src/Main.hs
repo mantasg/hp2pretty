@@ -43,7 +43,7 @@ main = do
   labelss <- if not (uniformTime || uniformMemory)
     then forM (files a) $ \file -> do
       (header, totals) <- total <$> readFile file
-      let keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
+      let keeps = prune (filters a) cmp (tracePercent a) (bound $ nBands a) totals
       (times, vals) <- bands header keeps <$> readFile file
       let ((sticks, vticks), (labels, coords)) = pretty header vals keeps
           outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
@@ -57,7 +57,7 @@ main = do
           hts | uniformMemory = map (\(h, t) -> (h{ hValueRange = vmima }, t)) hts1
               | otherwise = hts1
       forM (zip (files a) hts) $ \(file, (header, totals)) -> do
-        let keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
+        let keeps = prune (filters a) cmp (tracePercent a) (bound $ nBands a) totals
         (times, vals) <- bands header keeps <$> readFile file
         let ((sticks, vticks), (labels, coords)) = pretty header vals keeps
             outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords

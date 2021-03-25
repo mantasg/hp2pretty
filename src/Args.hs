@@ -17,6 +17,7 @@ data Args = Args
   , tracePercent :: Double
   , nBands       :: Int
   , patterned    :: Bool
+  , filters      :: [String]
   , files        :: [String]
   }
 
@@ -60,6 +61,10 @@ argParser = Args
       <*> switch
           ( long "pattern"
          <> help "Use patterns instead of solid colours to fill bands." )
+      <*> many (option str
+          ( long "filter"
+         <> help "Filters for bands"
+         <> metavar "FILTER" ))
       <*> some (argument str
           ( help "Heap profiles (FILE.hp will be converted to FILE.svg)."
          <> metavar "FILES..." ))

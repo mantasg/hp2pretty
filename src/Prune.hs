@@ -6,10 +6,10 @@ module Prune
   , cmpStdDev
   ) where
 
-import Data.Text.Lazy (Text)
+import Data.Text.Lazy (Text, isInfixOf, pack)
 import Data.List (foldl', sortBy)
 import Data.Ord (comparing)
-import Data.Map.Strict (Map, toList, fromList)
+import Data.Map.Strict (Map, toList, fromList, filterWithKey)
 
 type Compare a = a -> a -> Ordering
 
@@ -29,9 +29,10 @@ cmpStdDevDescending = flip cmpStdDevAscending
 cmpSizeAscending = comparing (fst . snd)
 cmpSizeDescending = flip cmpSizeAscending
 
-prune :: Compare (Text, (Double, Double)) -> Double -> Int -> Map Text (Double, Double) -> Map Text Int
-prune cmp tracePercent nBands ts =
-  let ccTotals = sortBy cmpSizeDescending (toList ts)
+prune :: [String] -> Compare (Text, (Double, Double)) -> Double -> Int -> Map Text (Double, Double) -> Map Text Int
+prune filters cmp tracePercent nBands ts =
+  let ts' = filterWithKey (\k _ -> applyFilter (map pack filters) k) ts
+      ccTotals = sortBy cmpSizeDescending (toList ts')
       sizes = map (fst . snd) ccTotals
       total = sum' sizes
       limit = (1 - tracePercent / 100) * total
@@ -42,3 +43,7 @@ prune cmp tracePercent nBands ts =
 
 sum' :: [Double] -> Double
 sum' = foldl' (+) 0
+
+applyFilter :: [Text] -> Text -> Bool
+applyFilter [] _ = True
+applyFilter fs t = any (\f -> f `isInfixOf` t) fs
