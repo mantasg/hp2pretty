@@ -30,7 +30,7 @@ print gfx notitle sepkey patterned header sticks vticks labels times coords =
         let y = y0 + fromIntegral i * dy
         in  (filled c $ rect gfx (x, y + 0.1 * dy) (dy * 0.8, dy * 0.8)) ++
             text gfx Nothing Start 15 (x + dy, y + dy * 0.6) [l]
-      w = 1280
+      w = 3280
       h = 720
       gW = (if sepkey then 1280 else 960) - 2 * border
       gH = if notitle then 720 - 2 * border else 720 - 3 * border
