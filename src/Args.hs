@@ -19,6 +19,7 @@ data Args = Args
   , patterned    :: Bool
   , filters      :: [String]
   , noTraces     :: Bool
+  , suffix       :: Maybe String
   , files        :: [String]
   }
 
@@ -69,6 +70,10 @@ argParser = Args
       <*> switch
           ( long "no-traces"
          <> help "Do not render trace-objects" )
+      <*> optional (option str
+          ( long "suffix"
+         <> help "Suffix for output files"
+         <> metavar "SUFFIX" ))
       <*> some (argument str
           ( help "Heap profiles (FILE.hp will be converted to FILE.svg)."
          <> metavar "FILES..." ))

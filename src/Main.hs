@@ -8,9 +8,8 @@ import qualified Data.Text.Lazy as T
 import Control.Monad (forM, forM_, when)
 import Data.List (foldl1', nub)
 import Data.Tuple (swap)
-import Data.Semigroup ((<>))
 import System.Exit (exitSuccess)
-import System.FilePath (replaceExtension)
+import System.FilePath
 import System.IO (withFile, IOMode(WriteMode), stdout)
 
 import Args (args, Args(..), Uniform(..), Sort(..), KeyPlace(..), TitlePlace(..))
@@ -47,7 +46,7 @@ main = do
       (times, vals) <- bands header keeps <$> readFile file
       let ((sticks, vticks), (labels, coords)) = pretty (noTraces a) header vals keeps
           outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
-      withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
+      withFile (addSuffix file (suffix a)) WriteMode $ \h -> mapM_ (hPutStr h) outputs
       return $ (header, reverse labels)
     else do
       hts0 <- map total <$> mapM readFile (files a)
@@ -61,7 +60,7 @@ main = do
         (times, vals) <- bands header keeps <$> readFile file
         let ((sticks, vticks), (labels, coords)) = pretty (noTraces a) header vals keeps
             outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
-        withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
+        withFile (addSuffix file (suffix a)) WriteMode $ \h -> mapM_ (hPutStr h) outputs
         return $ (header, reverse labels)
   case keyPlace a of
     KeyFile keyFile -> (if keyFile == "-" then ($ stdout) else withFile keyFile WriteMode) $ \txt -> do
@@ -82,3 +81,7 @@ bound :: Int -> Int
 bound n
   | n <= 0 = maxBound
   | otherwise = n
+
+addSuffix :: FilePath -> Maybe String -> FilePath
+addSuffix fileName Nothing = replaceExtension fileName "svg"
+addSuffix fileName (Just s) = dropExtensions fileName <> "-" <> s <> ".svg"
