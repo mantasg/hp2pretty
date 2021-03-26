@@ -46,7 +46,7 @@ rect :: Point -> Size -> [Text]
 rect (x,y) (w,h) = ["<rect x='", showF x, "' y='", showF y, "' width='" , showF w , "' height='" , showF h , "' />\n"]
 
 line :: Point -> Point -> [Text]
-line (x1,y1) (x2,y2) = ["<line x1='" , showF x1, "' x2='", showF x2, "' y1='", showF y1, "' y2='", showF y2, "' />\n"]
+line (x1,y1) (x2,y2) = ["<line clip-path=\"url(#crop-rect)\" x1='" , showF x1, "' x2='", showF x2, "' y1='", showF y1, "' y2='", showF y2, "' />\n"]
 
 pattern :: Text -> (PatternID, [Text])
 pattern t = ("url(#" <> pid <> ")",
@@ -74,10 +74,15 @@ document (w,h) defs inner =
   [ "<?xml version='1.0' encoding='UTF-8' ?>\n"
   , "<svg xmlns='http://www.w3.org/2000/svg' version='1.0'"
   , " width='", showF w, "' height='", showF h, "'>\n"
-  ] ++ ["<defs>\n"] ++ defs ++ ["</defs>\n"] ++ inner ++ ["</svg>\n"]
+  ] ++
+  [ "<defs>\n"
+  , "<clipPath id='crop-rect'>\n"
+  , "<rect x='90.0' y='90.0' width='840.0' height='540.0' />\n"
+  , "</clipPath>\n"
+  ] ++ defs ++ ["</defs>\n"] ++ inner ++ ["</svg>\n"]
 
 polygon :: [Point] -> [Text]
-polygon ps = ["<path d='"] ++ path ps ++ ["' />"]
+polygon ps = ["<path clip-path=\"url(#crop-rect)\" d='"] ++ path ps ++ ["' />"]
 
 path :: [(Double,Double)] -> [Text]
 path [] = error "SVG.path: empty"

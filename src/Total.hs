@@ -7,6 +7,7 @@ import Data.Map (Map, empty, lookup, insert, alter)
 import Prelude hiding (init, lookup, lines, words, drop, length)
 import Data.Text.Lazy (Text, init, pack, unpack, lines, words, isPrefixOf, drop, length, toStrict)
 import Data.Attoparsec.Text (parseOnly, double)
+import Data.Maybe (fromMaybe)
 
 import Types
 
@@ -24,19 +25,18 @@ data Parse =
 parse0 :: Parse
 parse0 = Parse{ symbols = empty, totals = empty, sampleMin = 0, sampleMax = 0, valueMin = 0, valueMax = 0, count = 0 }
 
-total :: Text -> (Header, Map Text (Double, Double))
-total s =
+total :: Maybe Double -> Maybe Double -> Text -> (Header, Map Text (Double, Double))
+total minX maxX s =
   let ls = lines s
       (hs, ss) = splitAt 4 ls
-      [job, date, smpU, valU] =
-        zipWith header [sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT] hs
-      parse1 = flip execState parse0 . mapM_ parseFrame . chunkSamples $ ss
+      [job, date, smpU, valU] = zipWith header [sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT] hs
+      parse1 = flip execState parse0 . mapM_ (parseFrame minX maxX) . chunkSamples $ ss
   in  ( Header
         { hJob        = job
         , hDate       = date
         , hSampleUnit = smpU
         , hValueUnit  = valU
-        , hSampleRange= (sampleMin parse1, sampleMax parse1)
+        , hSampleRange= (fromMaybe (sampleMin parse1) minX, fromMaybe (sampleMax parse1) maxX)
         , hValueRange = (valueMin parse1, valueMax parse1)
         , hCount      = count parse1
         }
@@ -62,18 +62,25 @@ chunkSamples (x:xs)
             (_:ws) -> (x:ys) : chunkSamples ws
   | otherwise = [] -- expected BEGIN_SAMPLE or EOF...
 
-parseFrame :: [Text] -> State Parse ()
-parseFrame [] = error "Parse.parseFrame: empty"
-parseFrame (l:ls) = do
+parseFrame :: Maybe Double -> Maybe Double -> [Text] -> State Parse ()
+parseFrame _ _ [] = error "Parse.parseFrame: empty"
+parseFrame minX maxX (l:ls) = do
   let !time = sampleTime sBEGIN_SAMPLE l
   samples <- mapM inserter ls
   p <- get
   let v = foldl' (+) 0 samples
       sMin = if count p == 0 then time else time `min` sampleMin p
       sMax = if count p == 0 then time else time `max` sampleMax p
-      vMin = v `min` valueMin p
-      vMax = v `max` valueMax p
+      vMin = if checkMin minX time && checkMax maxX time then v `min` valueMin p else valueMin p
+      vMax = if checkMin minX time && checkMax maxX time then v `max` valueMax p else valueMax p
+
   put $! p{ count = count p + 1, sampleMin = sMin, sampleMax = sMax, valueMin = vMin, valueMax = vMax }
+
+checkMin, checkMax :: Maybe Double -> Double -> Bool
+checkMin Nothing _ = True
+checkMin (Just m) v = v >= m
+checkMax Nothing _ = True
+checkMax (Just m) v = v <= m
 
 inserter :: Text -> State Parse Double
 inserter s = do

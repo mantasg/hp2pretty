@@ -41,7 +41,7 @@ main = do
   when (null (files a)) exitSuccess
   labelss <- if not (uniformTime || uniformMemory)
     then forM (files a) $ \file -> do
-      (header, totals) <- total <$> readFile file
+      (header, totals) <- total (fromX a) (toX a)  <$> readFile file
       let keeps = prune (filters a) cmp (tracePercent a) (bound $ nBands a) totals
       (times, vals) <- bands header keeps <$> readFile file
       let ((sticks, vticks), (labels, coords)) = pretty (noTraces a) header vals keeps
@@ -49,7 +49,7 @@ main = do
       withFile (addSuffix file (suffix a)) WriteMode $ \h -> mapM_ (hPutStr h) outputs
       return $ (header, reverse labels)
     else do
-      hts0 <- map total <$> mapM readFile (files a)
+      hts0 <- map (total (fromX a) (toX a)) <$> mapM readFile (files a)
       let (smima, vmima) = foldl1' (\((!smi, !sma), (!vmi, !vma)) ((!smi', !sma'), (!vmi', !vma')) -> ((smi`min`smi', sma`max`sma'), (vmi`min`vmi', vma`max`vma'))) . map (\(h, _) -> (hSampleRange h, hValueRange h)) $ hts0
           hts1 | uniformTime = map (\(h, t) -> (h{ hSampleRange = smima }, t)) hts0
                | otherwise = hts0

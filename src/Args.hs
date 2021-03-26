@@ -20,6 +20,8 @@ data Args = Args
   , filters      :: [String]
   , noTraces     :: Bool
   , suffix       :: Maybe String
+  , fromX        :: Maybe Double
+  , toX          :: Maybe Double
   , files        :: [String]
   }
 
@@ -74,6 +76,8 @@ argParser = Args
           ( long "suffix"
          <> help "Suffix for output files"
          <> metavar "SUFFIX" ))
+      <*> optional (option auto ( long "from" ))
+      <*> optional (option auto ( long "to" ))
       <*> some (argument str
           ( help "Heap profiles (FILE.hp will be converted to FILE.svg)."
          <> metavar "FILES..." ))
